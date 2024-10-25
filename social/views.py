@@ -4,8 +4,12 @@ from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.mail import send_mail
+from .models import Post
 from .forms import *
 
+
+def profile(request):
+    pass
 
 def log_out(request):
     logout(request)
@@ -50,3 +54,11 @@ def ticket(request):
     else:
         form = TicketForm()
     return render(request, "forms/ticket.html", {'form': form})
+
+
+def post_list(request):
+    posts = Post.objects.all()
+    context = {
+        'posts': posts,
+    }
+    return render(request, "social/list.html", context)
