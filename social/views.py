@@ -5,11 +5,13 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.mail import send_mail
 from .models import Post
+from taggit.models import Tag
 from .forms import *
 
 
 def profile(request):
     pass
+
 
 def log_out(request):
     logout(request)
@@ -56,9 +58,30 @@ def ticket(request):
     return render(request, "forms/ticket.html", {'form': form})
 
 
-def post_list(request):
+def post_list(request, tag_slug=None):
     posts = Post.objects.all()
+    tag = None
+    if tag_slug:
+        tag = get_object_or_404(Tag, slug=tag_slug)
+        posts = Post.objects.filter(tags__in=[tag])
     context = {
         'posts': posts,
+        'tag': tag
     }
     return render(request, "social/list.html", context)
+
+
+@login_required
+def create_post(request):
+    if request.method == "POST":
+        form = CreatePostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            post.save_m2m()
+            return redirect('social:profile')
+    else:
+        form = CreatePostForm()
+    return render(request, 'forms/create-post.html', {'form': form})
+
